@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         /// <summary>
-        /// Configures clearing for this render pass render targets. This should be called inside Configure.
+        /// Configures clearing for the render targets for this render pass. Call this inside Configure.
         /// </summary>
         /// <param name="clearFlag">ClearFlag containing information about what targets to clear.</param>
         /// <param name="clearColor">Clear color.</param>
@@ -112,11 +112,10 @@ namespace UnityEngine.Rendering.LWRP
         }
 
         /// <summary>
-        /// This method is called before executing the render pass. 
-        /// It can be used to configure render targets and their clear state. Also to create temporary render target textures.
-        /// When empty this render pass will render to the active camera render target.
-        /// You should never call CommandBuffer.SetRenderTarget. Instead call ConfigureTarget and ConfigureClear.
-        /// The render pipeline will ensure target setup and clearing happens in an performance manner.
+        /// This method is called by the renderer before executing the render pass. 
+        /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
+        /// If a render pass doesn't override this method, this render pass renders to the active Camera's render target.
+        /// You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
         /// </summary>
         /// <param name="cmd">CommandBuffer to enqueue rendering commands. This will be executed by the pipeline.</param>
         /// <param name="cameraTextureDescriptor">Render texture descriptor of the camera render target.</param>
