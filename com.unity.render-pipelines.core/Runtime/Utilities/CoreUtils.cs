@@ -336,6 +336,11 @@ namespace UnityEngine.Rendering
             return (mask.ToUInt32(null) & flag.ToUInt32(null)) != 0;
         }
 
+        public static bool HasFlag(uint mask, uint flag)
+        {
+            return (mask & flag) != 0;
+        }
+
         public static void Swap<T>(ref T a, ref T b)
         {
             var tmp = a;

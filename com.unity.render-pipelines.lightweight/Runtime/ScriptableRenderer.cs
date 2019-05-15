@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -381,7 +380,7 @@ namespace UnityEngine.Rendering.LWRP
             RenderBufferLoadAction colorLoadAction = clearFlag != ClearFlag.None ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            RenderBufferLoadAction depthLoadAction = CoreUtils.HasFlag(clearFlag, ClearFlag.Depth) ?
+            RenderBufferLoadAction depthLoadAction = CoreUtils.HasFlag((uint)clearFlag, (uint)ClearFlag.Depth) ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             TextureDimension dimension = (m_InsideStereoRenderBlock) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
