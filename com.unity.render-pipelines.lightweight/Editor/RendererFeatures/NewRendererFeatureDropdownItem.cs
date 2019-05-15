@@ -15,7 +15,6 @@ namespace UnityEditor.Rendering.LWRP
                 templatePath = LightweightRenderPipelineAsset.packagePath + "/Editor/RendererFeatures/NewRendererFeature.cs.txt";
 
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, defaultNewClassName);
-            AssetDatabase.Refresh();
         }
     }
 }
