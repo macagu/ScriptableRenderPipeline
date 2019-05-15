@@ -298,9 +298,9 @@ namespace UnityEngine.Rendering.LWRP
         void ExecuteBlock(RenderPassEvent startEvent, RenderPassEvent endEvent,
             ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
         {
-            int currIndex = m_ActiveRenderPassQueue.FindIndex(x => (x.renderPassEvent >= startEvent && x.renderPassEvent < endEvent));
-            if (currIndex == -1)
-                return;
+            int currIndex = 0;
+            while (m_ActiveRenderPassQueue[currIndex].renderPassEvent < startEvent)
+                currIndex++;
 
             while (currIndex < m_ActiveRenderPassQueue.Count && m_ActiveRenderPassQueue[currIndex].renderPassEvent < endEvent)
             {
