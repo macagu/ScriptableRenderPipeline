@@ -45,6 +45,6 @@ To set a custom color for a node, right click on the desired node and find `Colo
 <images>
 
 ## Overriding Default Colors
-Default colors set in `Category` mode can be overridden per-project. The defaults are set using `.uss` Style Sheet and `HEX` color values. 
-The default style sheet can be found in your project at `Packages/com.unity.shadergraph/Editor/Resources/Styles/NodeColors.uss` . 
+Preset colors set in `Category` mode can be overridden per-project. The colors are set using `.uss` Style Sheet and `HEX` color values. 
+The default style sheet can be found in your project at `Packages/com.unity.shadergraph/Editor/Resources/Styles/ColorMode.uss` . It is recommended that you create a copy of this file in your project to override the presets. Create a new folder directory in your project: `Editor/Resources/Styles` and create a copy of `ColorMode.uss` in this folder. Change the hex colors values in this file to override the presets and use your own custom colors for `Category` mode. 
 
