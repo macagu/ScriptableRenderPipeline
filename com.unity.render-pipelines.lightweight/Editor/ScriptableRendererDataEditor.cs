@@ -191,6 +191,14 @@ namespace UnityEditor.Rendering.LWRP
         {
             var menu = new GenericMenu();
 
+#if UNITY_2019_2_OR_NEWER
+            var types = TypeCache.GetTypesDerivedFrom<ScriptableRendererFeature>();
+            foreach (Type type in types)
+            {
+                string path = GetMenuNameFromType(type);
+                menu.AddItem(new GUIContent(path), false, AddPassHandler, type.Name);
+            }
+#else
             Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly assembly in assemblies)
             {
@@ -207,22 +215,15 @@ namespace UnityEditor.Rendering.LWRP
                 {
                     if (type.IsSubclassOf(typeof(ScriptableRendererFeature)))
                     {
-                        var path = type.Name;
-                        if (type.Namespace != null)
-                        {
-                            if (type.Namespace.Contains("Experimental"))
-                                path += " (Experimental)";
-                        }
-
-                        path = Regex.Replace(Regex.Replace(path, "([a-z])([A-Z])", "$1 $2"),
-                            "([A-Z])([A-Z][a-z])", "$1 $2");
+                        string path = GetMenuNameFromType(type);
                         menu.AddItem(new GUIContent(path), false, AddPassHandler, type.Name);
                     }
                 }
             }
+#endif
             menu.ShowAsContext();
         }
-
+        
         private void RemovePass(ReorderableList list)
         {
             var obj = m_RenderPasses.GetArrayElementAtIndex(list.index).objectReferenceValue;
@@ -250,6 +251,20 @@ namespace UnityEditor.Rendering.LWRP
             var newHeaderState = m_Foldouts[newIndex].value;
             m_Foldouts[oldIndex].value = newHeaderState;
             m_Foldouts[newIndex].value = oldHeaderState;
+        }
+
+        private string GetMenuNameFromType(Type type)
+        {
+            var path = type.Name;
+            if (type.Namespace != null)
+            {
+                if (type.Namespace.Contains("Experimental"))
+                    path += " (Experimental)";
+            }
+
+            // Inserts blank space in between camel case strings
+            return Regex.Replace(Regex.Replace(path, "([a-z])([A-Z])", "$1 $2", RegexOptions.Compiled),
+                "([A-Z])([A-Z][a-z])", "$1 $2", RegexOptions.Compiled);
         }
 
         private string ValidatePassName(string name)
