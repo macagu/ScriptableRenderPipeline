@@ -234,6 +234,12 @@ namespace UnityEngine.Rendering
             // Traverse all volumes
             foreach (var volume in volumes)
             {
+#if UNITY_EDITOR
+                // Skip volumes that aren't in the scene currently displayed in the scene view
+                if (!IsVolumeRenderedByCamera(volume, trigger.GetComponent<Camera>()))
+                    continue;
+#endif
+
                 // Skip disabled volumes and volumes without any data or weight
                 if (!volume.enabled || volume.profileRef == null || volume.weight <= 0f)
                     continue;
@@ -342,6 +348,15 @@ namespace UnityEngine.Rendering
 
                 volumes[j + 1] = temp;
             }
+        }
+
+        static bool IsVolumeRenderedByCamera(Volume volume, Camera camera)
+        {
+#if UNITY_2018_3_OR_NEWER && UNITY_EDITOR
+            return UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(volume.gameObject, camera);
+#else
+            return true;
+#endif
         }
     }
 }

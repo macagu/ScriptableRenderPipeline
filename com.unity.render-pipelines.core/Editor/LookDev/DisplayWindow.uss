@@ -1,66 +1,132 @@
-.container {
+.container
+{
     margin: 0px;
     flex: 1;
     flex-direction: row;
 }
 
+/* ///// */
+/* VIEWS */
+/* ///// */
+
 /* override as later in document */
-.verticalSplit {
+.verticalSplit
+{
     flex-direction: column;
 }
 
-#viewContainer {
+#viewContainer
+{
     flex-shrink: 0;
 }
 
 #firstView,
-#secondView {
+#secondView
+{
     flex: 0;
 }
 
 /* override as later in document */
 .firstView > #firstView,
-.secondView > #secondView {
+.secondView > #secondView
+{
     flex: 1;
 }
 
-.showEnvironmentPanel > #environmentContainer {
-	width: 200px;
+
+/* /////////// */
+/* ENVIRONMENT */
+/* /////////// */
+
+#environmentContainer
+{
+	width: 0px;
+    flex-direction: column-reverse;
 }
 
-#toolbar {
+#environmentContainer > EnvironmentElement
+{
+    border-top-width:1px;
+    border-color:#000000;
+    flex-shrink:0;
+}
+
+.showEnvironmentPanel > #environmentContainer
+{
+	width: 219px;
+}
+
+.unity-label
+{
+    min-width:90px;
+}
+
+#environmentContainer > ListView
+{
+    flex:1;
+}
+
+Image.unity-list-view__item
+{
+    width:200px;
+    margin-left:5px;
+    border-left-width:0px;
+}
+
+Image.unity-list-view__item:selected
+{
+    width:205px;
+    margin-left:0px;
+    border-left-width:5px;
+    border-color:#3d6091;
+}
+
+
+
+/* /////// */
+/* TOOLBAR */
+/* /////// */
+
+#toolbar
+{
     flex-direction: row;
 }
 
-#toolbar > #toolbarRadio {
+#toolbar > #toolbarRadio
+{
     flex-direction: row;
 }
 
-.unity-toggle__input > .unity-image {
+.unity-toggle__input > .unity-image
+{
     padding-top: 2px;
     padding-right: 2px;
     padding-bottom: 2px;
     padding-left: 1px;
 }
 
-#toolbar > .unity-label {
+#toolbar > .unity-label
+{
     padding-top: 3px;
     padding-bottom: 0px;
 }
 
-#toolbarEnvironment {
-    width: 200px;
+#toolbarEnvironment
+{
+    width: 220px;
 }
 
+
+
+
 /* TEST UNDER THIS LINE */
-#firstView {
+#firstView
+{
     background-color: rgb(255, 0, 0);
 }
 
-#secondView {
+#secondView
+{
     background-color: rgb(0, 255, 0);
 }
 
-#environmentContainer {
-    background-color: rgb(0, 0, 255);
-}

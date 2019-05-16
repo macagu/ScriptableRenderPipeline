@@ -21,15 +21,25 @@ namespace UnityEditor.Rendering.LookDev
         event Action<IMouseEvent> OnMouseEventInView;
 
         event Action<GameObject, ViewCompositionIndex, Vector2> OnChangingObjectInView;
+        event Action<Material, ViewCompositionIndex, Vector2> OnChangingMaterialInView;
         event Action<UnityEngine.Object, ViewCompositionIndex, Vector2> OnChangingEnvironmentInView;
         
         event Action OnClosed;
     }
+    
+    public interface IEnvironmentDisplayer
+    {
+        void Repaint();
 
+        event Action<UnityEngine.Object> OnAddingEnvironment;
+        event Action<int> OnRemovingEnvironment;
+        event Action<EnvironmentLibrary> OnChangingEnvironmentLibrary;
+    }
+    
     /// <summary>
     /// Displayer and User Interaction 
     /// </summary>
-    internal class DisplayWindow : EditorWindow, IViewDisplayer
+    internal class DisplayWindow : EditorWindow, IViewDisplayer, IEnvironmentDisplayer
     {
         static class Style
         {
@@ -59,6 +69,8 @@ namespace UnityEditor.Rendering.LookDev
         VisualElement m_MainContainer;
         VisualElement m_ViewContainer;
         VisualElement m_EnvironmentContainer;
+        ListView m_EnvironmentList;
+        EnvironmentElement m_EnvironmentInspector;
 
         Image[] m_Views = new Image[2];
         
@@ -117,6 +129,13 @@ namespace UnityEditor.Rendering.LookDev
             remove => OnChangingObjectInViewInternal -= value;
         }
 
+        event Action<Material, ViewCompositionIndex, Vector2> OnChangingMaterialInViewInternal;
+        event Action<Material, ViewCompositionIndex, Vector2> IViewDisplayer.OnChangingMaterialInView
+        {
+            add => OnChangingMaterialInViewInternal += value;
+            remove => OnChangingMaterialInViewInternal -= value;
+        }
+
         event Action<UnityEngine.Object, ViewCompositionIndex, Vector2> OnChangingEnvironmentInViewInternal;
         event Action<UnityEngine.Object, ViewCompositionIndex, Vector2> IViewDisplayer.OnChangingEnvironmentInView
         {
@@ -131,6 +150,26 @@ namespace UnityEditor.Rendering.LookDev
             remove => OnClosedInternal -= value;
         }
 
+        event Action<UnityEngine.Object> OnAddingEnvironmentInternal;
+        event Action<UnityEngine.Object> IEnvironmentDisplayer.OnAddingEnvironment
+        {
+            add => OnAddingEnvironmentInternal += value;
+            remove => OnAddingEnvironmentInternal -= value;
+        }
+
+        event Action<int> OnRemovingEnvironmentInternal;
+        event Action<int> IEnvironmentDisplayer.OnRemovingEnvironment
+        {
+            add => OnRemovingEnvironmentInternal += value;
+            remove => OnRemovingEnvironmentInternal -= value;
+        }
+
+        event Action<EnvironmentLibrary> OnChangingEnvironmentLibraryInternal;
+        event Action<EnvironmentLibrary> IEnvironmentDisplayer.OnChangingEnvironmentLibrary
+        {
+            add => OnChangingEnvironmentLibraryInternal += value;
+            remove => OnChangingEnvironmentLibraryInternal -= value;
+        }
 
         void OnEnable()
         {
@@ -239,6 +278,17 @@ namespace UnityEditor.Rendering.LookDev
             new DropArea(new[] { typeof(GameObject) }, m_Views[(int)ViewIndex.Second], (obj, localPos)
                 => OnChangingObjectInViewInternal?.Invoke(obj as GameObject, ViewCompositionIndex.Second, localPos));
 
+            // Material in view
+            new DropArea(new[] { typeof(GameObject) }, m_Views[(int)ViewIndex.First], (obj, localPos) =>
+            {
+                if (layout == Layout.CustomSplit || layout == Layout.CustomCircular)
+                    OnChangingMaterialInViewInternal?.Invoke(obj as Material, ViewCompositionIndex.Composite, localPos);
+                else
+                    OnChangingMaterialInViewInternal?.Invoke(obj as Material, ViewCompositionIndex.First, localPos);
+            });
+            new DropArea(new[] { typeof(Material) }, m_Views[(int)ViewIndex.Second], (obj, localPos)
+                => OnChangingMaterialInViewInternal?.Invoke(obj as Material, ViewCompositionIndex.Second, localPos));
+
             // Environment in view
             new DropArea(new[] { typeof(Environment), typeof(Cubemap) }, m_Views[(int)ViewIndex.First], (obj, localPos) =>
             {
@@ -249,8 +299,20 @@ namespace UnityEditor.Rendering.LookDev
             });
             new DropArea(new[] { typeof(Environment), typeof(Cubemap) }, m_Views[(int)ViewIndex.Second], (obj, localPos)
                 => OnChangingEnvironmentInViewInternal?.Invoke(obj, ViewCompositionIndex.Second, localPos));
-        }
 
+            // Environment in library
+            new DropArea(new[] { typeof(Environment), typeof(Cubemap) }, m_EnvironmentContainer, (obj, localPos) =>
+            {
+                //[TODO: check if this come from outside of library]
+                OnAddingEnvironmentInternal?.Invoke(obj);
+            });
+            new DropArea(new[] { typeof(EnvironmentLibrary) }, m_EnvironmentContainer, (obj, localPos) =>
+            {
+                OnChangingEnvironmentLibraryInternal?.Invoke(obj as EnvironmentLibrary);
+                RefreshLibraryDisplay();
+            });
+        }
+        
         void CreateEnvironment()
         {
             if (m_MainContainer == null || m_MainContainer.Equals(null))
@@ -261,7 +323,48 @@ namespace UnityEditor.Rendering.LookDev
             if (showEnvironmentPanel)
                 m_MainContainer.AddToClassList(k_ShowEnvironmentPanelClass);
 
-            //to complete
+
+            var inspector = new EnvironmentElement(withPreview: false);
+            m_EnvironmentList = new ListView();
+            m_EnvironmentList.onSelectionChanged += objects =>
+            {
+                if (objects.Count == 0)
+                    inspector.style.visibility = Visibility.Hidden;
+                else
+                {
+                    inspector.style.visibility = Visibility.Visible;
+                    inspector.Bind(LookDev.currentContext.environmentLibrary[m_EnvironmentList.selectedIndex], m_EnvironmentList.selectedItem as Image);
+                }
+            };
+            m_EnvironmentContainer.Add(inspector);
+            m_EnvironmentContainer.Add(m_EnvironmentList);
+
+            RefreshLibraryDisplay();
+        }
+
+        void RefreshLibraryDisplay()
+        {
+            var library = LookDev.currentContext.environmentLibrary;
+
+            int itemMax = library?.Count ?? 0;
+            var items = new List<int>(itemMax);
+            for (int i = 0; i < itemMax; i++)
+                items.Add(i);
+
+            Func<VisualElement> makeItem = () => new Image();
+            Action<VisualElement, int> bindItem = (e, i) =>
+            {
+                (e as Image).image = EnvironmentElement.GetLatLongThumbnailTexture(library[i], EnvironmentElement.k_SkyThumbnailWidth);
+            };
+
+            m_EnvironmentList.itemsSource = items;
+            m_EnvironmentList.itemHeight = EnvironmentElement.k_SkyThumbnailHeight + 10;
+            m_EnvironmentList.makeItem = makeItem;
+            m_EnvironmentList.bindItem = bindItem;
+            m_EnvironmentList.selectionType = SelectionType.Single;
+
+            m_EnvironmentList.onItemChosen += obj =>
+                EditorGUIUtility.PingObject(library[(int)obj]);
         }
 
         Rect IViewDisplayer.GetRect(ViewCompositionIndex index)
@@ -297,6 +400,12 @@ namespace UnityEditor.Rendering.LookDev
         }
 
         void IViewDisplayer.Repaint() => Repaint();
+
+        //[TODO]
+        void IEnvironmentDisplayer.Repaint()
+        {
+            throw new NotImplementedException();
+        }
 
         void ApplyLayout(Layout value)
         {
