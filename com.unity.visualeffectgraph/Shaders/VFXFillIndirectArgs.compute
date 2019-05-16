@@ -5,7 +5,11 @@
 CBUFFER_START(Uniform)
     uint maxNb;
     uint offset;
+    uint instanceCountMultiplier;
 CBUFFER_END
+
+// XRTODO: workaround until C++ change is merged (set to 2 to test single-pass instancing)
+#define instanceCountMultiplier 1
 
 #define NB_THREADS_PER_GROUP 64
 
@@ -38,14 +42,14 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
             case 0: // point
             {
                 args.x = elementCount;
-                args.y = 1;
+                args.y = instanceCountMultiplier;
                 break;
             }
 
             case 1: // lines
             {
                 args.x = elementCount * 2;
-                args.y = 1;
+                args.y = instanceCountMultiplier;
                 break;
             }
 
@@ -62,6 +66,7 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
                     args.x = elementCount * 6;
                     args.y = 1;
                 }
+                args.y *= instanceCountMultiplier;
                 break;
             }
 
@@ -78,13 +83,14 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
                     args.x = elementCount * 36;
                     args.y = 1;
                 }
+                args.y *= instanceCountMultiplier;
                 break;
             }
 
             case 4: // meshes
             {
                 args.x = data.indexCount;
-                args.y = elementCount;
+                args.y = elementCount * instanceCountMultiplier;
                 args.z = data.startIndex;
                 args.w = data.baseVertex;
                 break;
@@ -93,7 +99,7 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
             case 5: // triangles
             {
                 args.x = elementCount * 3;
-                args.y = 1;
+                args.y = instanceCountMultiplier;
                 break;
             }
 			
@@ -110,6 +116,7 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
                     args.x = elementCount * 18;
                     args.y = 1;
                 }
+                args.y *= instanceCountMultiplier;
                 break;
 			}
 
