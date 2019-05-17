@@ -6,10 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [6.7.0] - 2019-XX-XX
 ### Fixed
+- Fixed an error that occured when using multiple Sampler State nodes with different parameters.
 - When you perform an undo or redo to an inactive Shader Graph window, the window no longer breaks.
 - When you rapidly perform an undo or redo, Shader Graph windows no longer break.
 - Sub Graphs that contain references to non-existing Sub Graphs no longer break the Sub Graph Importer.
 - You can now reference sub-assets such as Textures.
+- Remaining outdated documentation has been removed. 
+- You can no longer duplicate the Sub Graph Outputs node.
 - When you click on the gear icon, Shader Graph now focuses on the selected node, and brings the settings menu to front view.
 
 ## [6.6.0] - 2019-04-01
