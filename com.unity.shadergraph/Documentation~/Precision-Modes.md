@@ -1,51 +1,54 @@
-# Data Types
+# Precision Modes
 
 ## Description
 
-There are a number of **Data Types** in [Shader Graph](Shader-Graph.md). Each **Port** on a [Node](Node.md) has an associated **Data Type** that defines what edges can be connected to it. The **Data Types** have colors for usability, these colors are applied to ports and edges of that **Data Type**.
+![](images/Precision_DropDown.png)
 
-Some **Data Types** have associated [Property Types](Property-Types.md) for exposing these values to the [Inspector](https://docs.unity3d.com/Manual/UsingTheInspector.html) for [Materials](https://docs.unity3d.com/Manual/class-Material.html) that use the shader.
+Shader Graph has the capability to set specific precision data modes for optimization across different platforms. The precision can be set for the whole graph using the Precision drop down in the top right hand corner, or set per-node on the graph in the gear menu on each node. 
 
-## Data Types
+See [Precision Types](Precision-Types.md) for type options. 
 
-| Name        | Color           | Description |
-|:------------|:----------------|:------------|
-| Vector 1 | Light Blue | A **Vector 1** or scalar value |
-| Vector 2 | Green | A **Vector 2** value |
-| Vector 3 | Yellow | A **Vector 3** value |
-| Vector 4 | Pink | A **Vector 4** value |
-| Dynamic Vector | Light Blue | See **Dynamic Data Types** below |
-| Matrix 2 | Blue | A **Matrix 2x2** value |
-| Matrix 3 | Blue | A **Matrix 3x3** value |
-| Matrix 4 | Blue | A **Matrix 4x4** value |
-| Dynamic Matrix | Blue | See **Dynamic Data Types** below |
-| Dynamic | Blue | See **Dynamic Data Types** below |
-| Boolean | Purple | A **Boolean** value. Defined as a float in the generated shader |
-| Texture 2D | Red | A [Texture 2D](https://docs.unity3d.com/Manual/class-TextureImporter.html) asset |
-| Texture 2D Array | Red | A [Texture 2D Array](https://docs.unity3d.com/Manual/class-TextureImporter.html) asset |
-| Texture 3D | Red | A [Texture 3D](https://docs.unity3d.com/Manual/class-TextureImporter.html) asset |
-| Cubemap | Red | A [Cubemap](https://docs.unity3d.com/Manual/class-Cubemap.html) asset |
-| Gradient | Grey | A **Gradient** value. Defined as a struct in the generated shader |
-| SamplerState | Grey | A state used for sampling a texture |
+## Menu Options
+| Name | Description |
+|------:|------------|
+| Float | Sets the precision mode to `float`. |
+| Half | Sets the precision mode to `half`. |
+| Real | Sets the precision more to `real`. |
+| Inherit | Sets the precision mode to `inherit`. <br> See **Precision Inheritance** below. Only available on nodes. |
 
-## Promoting/Truncating
+## Using Precision Modes
+### Graph Precision 
+Using the drop down menu in the top right corner of the [Shader Graph Window](Shader-Graph-Window.md), the precision for the entire graph can be set to `float`, `half`, or `real`. By default, new nodes created will use the precision set in this drop down menu.
 
-All **Vector** types can be promoted or truncated to match any **Vector** type [Port](Port.md). This behaviour occurs only when the [Port](Port.md) in question is not of type **Dynamic Vector**. When truncating, excess channels are simply removed. When promoting, the extra required channels are filled by default values. These values values are (0, 0, 0, 1).
+### Node Precision 
+Each node can set its own precision using the gear icon menu. The precision type will cast itself up or down as data flows through the graph based on the precision set on each node. 
 
-## Dynamic Data Types
+For example, if a `half` node is connected to a `float` node, then the data will upcast to a `float`. If that `float` node is then connected to another `half` node, the data be downcast back to `half`. 
 
-Some **Data Types** are dynamic. This means a port using these **Data Types** can change their underlying **Concrete Data Type** based on what **Data Type** is connected to it. By default, [Nodes](Node.md) using dynamic **Data Types** can only have one **Concrete Data Type**, meaning that once a connected edge has applied its **Data Type** to that port, all other **Dynamic Data Type** slots of that [Node](Node.md) will apply the same **Data Type**.
+![](images/Precision_Per_Node.png)
 
-One notable exception to this is the [Multiply Node](Multiply-Node.md) which allows both **Dynamic** **Matrix** and **Vector** types.
+### Precision Inheritance
+Nodes have a precision option called `inherit`. This means that they will inherit the precision mode of any incoming edges. All nodes use `inherit` mode by default when added to the graph. 
+Nodes that do not have any edge connections to the input ports will use the **Graph Precision** when set to `inherit`. 
 
-### Dynamic Vector
+For example, **Node A** below is set to `inherit`. The graph is set to `half`, so the node will use `half` as its precision mode. 
 
-The **Dynamic Vector** type allows connected edges of any **Vector** type. All connected edges are automatically truncated to the type with the lowest dimension, unless the lowest dimension is 1, in which case the **Vector 1** is promoted.
+![](images/Precision_Inheritance_01.png)
 
-### Dynamic Matrix
+Precision is read in the nodes for each input port. A node that is set to `inherit` can have two different precision modes connected to its input ports. The output preicsion mode in this case will be determined by the highest available precision mode based on the input ports. 
 
-The **Dynamic Matrix** type allows connected edges of any **Matrix** type. All connected edges are automatically truncated to the type with the lowest dimension.
+In the example below, **Node D** is set to `inherit`. **Node B** is passing in a precision of `half` via Input Port A. **Node C** is passing in a precision of `float` via Input Port B. **Node D** is going to output `float`, as that is the highest precision mode out of all input ports on **Node D**.
 
-### Dynamic
+![](images/Precision_Inheritance_02.png)
 
-The **Dynamic** type is a special case. [Nodes](Node.md) that support it must define how it is validated. In the case of the [Multiply Node](Multiply-Node.md), it allows connections of any **Vector** or **Matrix** type, ensuring the correct multiplication is applied depending on the mix of **Data Types**. 
+Nodes with no input ports can also be set with precision modes. These are typically Input Nodes, and by default they will be set to `inherit` and use the **Graph Precision**. The precision of the input data being fed into the graph can be manually set per node using the same method as any other node. 
+
+![](images/Precision_Inheritance_03.png)
+
+Nodes set to `inherit` with no connected input ports will always use the **Graph Precision**. If the **Graph Precision** mode changes, the precision of those nodes will update to match the new precision. 
+
+It's important to track which nodes are inheriting, as it is possible to create a conversion bottle neck when changing the **Graph Precision**.  
+
+For example, if the **Graph Precision** is changed from `half` to `float`, but **Node B** has been manually set to `half`, the data flowing in to **Node B** will be converted from `float` to `half` and back to `float` again at **Node D**. 
+
+![](images/Precision_Inheritance_04.png)
