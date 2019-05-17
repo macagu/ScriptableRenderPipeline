@@ -52,3 +52,20 @@ It's important to track which nodes are inheriting, as it is possible to create 
 For example, if the **Graph Precision** is changed from `half` to `float`, but **Node B** has been manually set to `half`, the data flowing in to **Node B** will be converted from `float` to `half` and back to `float` again at **Node D**. 
 
 ![](images/Precision_Inheritance_04.png)
+
+### Sub Graph Precision 
+When working with precision inside of [Sub Graphs](Sub-graph.md), the graph and node behavior will be the same as precision in normal graphs. **Graph Precision** is set using the same drop down in the top right corner. **Node Precision** per node inside of the sub graph is set on each node in the same gear icon menu. 
+
+Precision for the **Sub Graph Output** is set on the **Output** node. This precision will apply to all output ports defined in the **Output** node of the sub graph. 
+
+![](images/Precision_SubGraph_01.png)
+
+Precision for **Sub Graph Inputs** are set on the [Blackboard](Blackboard.md). Precision modes are set on each individual [Property](Property-Types.md). on the Blackboard of the sub graph. Properties that use the `inherit` option will inherit the precision set on the Sub Graph via the drop down menu in the top right corner. 
+
+![](images/Precision_SubGraph_02.png)
+
+When using a [Sub-graph Node](Sub-graph-Node.md) inside of a main graph, the sub graph determines its own precision. Precision modes set on the input properties in the sub graph blackboard will inherit the **Sub Graph Precision** set on the sub graph asset. The output of the sub graph will use the precision set on the **Output** node. A [Sub-graph Node](Sub-graph-Node.md) cannot have its precision changed inside of a [Shader Graph](Shader-Graph.md). 
+
+In the example below, the **Sub Graph Precision** is set to `half`. The **Graph Precision** is set to `float`. **Input A** and the **Output** node are both set to `inherit`. The input and output ports fo the sub graph will inherit `half` from the **Sub Graph Precision**, even though the **Graph Precision** is set to `float`. If you want the `inherit` behavior of the sub graph to match the graph, you would need to set the **Sub Graph Precision** to `float` as well. 
+
+![](images/Precision_SubGraph_03.png)
