@@ -27,8 +27,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static readonly GUIContent haveStartPopup = EditorGUIUtility.TrTextContent("Show on start");
 
             //configuration debugger
-            public static readonly GUIContent ok = EditorGUIUtility.TrIconContent("Collab");
-            public static readonly GUIContent fail = EditorGUIUtility.TrIconContent("CollabError");
+            public static readonly GUIContent ok = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(@"Packages/com.unity.render-pipelines.high-definition/Editor/DefaultScene/WizardResources/OK.png") as Texture2D);
+            public static readonly GUIContent fail = EditorGUIUtility.TrIconContent(EditorGUIUtility.Load(@"Packages/com.unity.render-pipelines.high-definition/Editor/DefaultScene/WizardResources/Error.png") as Texture2D);
             public static readonly GUIContent resolve = EditorGUIUtility.TrTextContent("Fix");
             public static readonly GUIContent resolveAll = EditorGUIUtility.TrTextContent("Fix All");
             public static readonly GUIContent resolveAllQuality = EditorGUIUtility.TrTextContent("Fix All Qualities");
